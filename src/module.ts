@@ -204,6 +204,7 @@ export interface ModuleOptions {
    * @default false
    */
   documentDriven: boolean | {
+    host?: string
     page?: boolean
     navigation?: boolean
     surround?: boolean
@@ -212,6 +213,7 @@ export interface ModuleOptions {
     }
     layoutFallbacks?: string[]
     injectPage?: boolean
+    trailingSlash?: boolean
   },
   experimental: {
     clientDB: boolean
@@ -300,15 +302,15 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Add Vite configurations
     extendViteConfig((config) => {
+      config.define = config.define || {}
+      config.define['process.env.VSCODE_TEXTMATE_DEBUG'] = false
+
       config.optimizeDeps = config.optimizeDeps || {}
       config.optimizeDeps.include = config.optimizeDeps.include || []
       config.optimizeDeps.include.push(
         'html-tags', 'slugify'
       )
     })
-
-    // Add Content plugin
-    addPlugin(resolveRuntimeModule('./plugins/ws'))
 
     nuxt.hook('nitro:config', (nitroConfig) => {
       // Init Nitro context
@@ -541,27 +543,6 @@ export default defineNuxtModule<ModuleOptions>({
       ])
     }
 
-    // Register anchor link generation
-    if (options.markdown.anchorLinks === true) {
-      options.markdown.anchorLinks = {
-        depth: 6,
-        exclude: []
-      }
-    } else if (options.markdown.anchorLinks === false) {
-      options.markdown.anchorLinks = {
-        depth: 0,
-        exclude: []
-      }
-    } else {
-      options.markdown.anchorLinks = {
-        ...{
-          depth: 4,
-          exclude: [1]
-        },
-        ...options.markdown.anchorLinks
-      }
-    }
-
     // @ts-ignore
     await nuxt.callHook('content:context', contentContext)
 
@@ -596,6 +577,8 @@ export default defineNuxtModule<ModuleOptions>({
       wsUrl: '',
       // Document-driven configuration
       documentDriven: options.documentDriven as any,
+      host: typeof options.documentDriven !== 'boolean' ? options.documentDriven?.host ?? '' : '',
+      trailingSlash: typeof options.documentDriven !== 'boolean' ? options.documentDriven?.trailingSlash ?? false : false,
       // Anchor link generation config
       anchorLinks: options.markdown.anchorLinks
     })
@@ -651,6 +634,10 @@ export default defineNuxtModule<ModuleOptions>({
       })
       return
     }
+    // ~~ DEV ~~ //
+
+    // Add Content plugin
+    addPlugin(resolveRuntimeModule('./plugins/ws'))
 
     nuxt.hook('nitro:init', async (nitro) => {
       if (!options.watch || !options.watch.ws) { return }

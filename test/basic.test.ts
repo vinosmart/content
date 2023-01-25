@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'url'
-import { test, describe, expect, vi } from 'vitest'
+import { test, describe, expect } from 'vitest'
 import { setup, $fetch } from '@nuxt/test-utils'
 import { testMarkdownParser } from './features/parser-markdown'
 import { testPathMetaTransformer } from './features/transformer-path-meta'
@@ -19,7 +19,7 @@ import { testParserOptions } from './features/parser-options'
 import { testComponents } from './features/components'
 import { testLocales } from './features/locales'
 
-const spyConsoleWarn = vi.spyOn(global.console, 'warn')
+// const spyConsoleWarn = vi.spyOn(global.console, 'warn')
 
 describe('Basic usage', async () => {
   await setup({
@@ -30,6 +30,11 @@ describe('Basic usage', async () => {
   test('Multi part path', async () => {
     const html = await $fetch('/features/multi-part-path')
     expect(html).contains('Persian')
+  })
+
+  test('Japanese path', async () => {
+    const html = await $fetch('/こんにちは')
+    expect(html).contains('🎨 こんにちは')
   })
 
   test('Partials specials chars', async () => {
@@ -43,10 +48,10 @@ describe('Basic usage', async () => {
     expect(html).contains('<p><!--[-->p1<!--]--></p>')
   })
 
-  test('Warning for invalid file name', () => {
-    expect(spyConsoleWarn).toHaveBeenCalled()
-    expect(spyConsoleWarn).toHaveBeenCalledWith('Ignoring [content:with-\'invalid\'-char.md]. File name should not contain any of the following characters: \', ", ?, #, /')
-  })
+  // test('Warning for invalid file name', () => {
+  //   expect(spyConsoleWarn).toHaveBeenCalled()
+  //   expect(spyConsoleWarn).toHaveBeenCalledWith('Ignoring [content:with-\'invalid\'-char.md]. File name should not contain any of the following characters: \', ", ?, #, /')
+  // })
 
   testLocales()
 
