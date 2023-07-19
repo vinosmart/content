@@ -35,9 +35,13 @@ Nuxt 2 is supported with Content v1, documentation is on <https://content.nuxtjs
 ## 💻 Development
 
 - Clone repository
-- Install dependencies using `yarn install`
-- Prepare using `yarn prepare`
-- Try playground using `yarn dev`
+- Install dependencies using `pnpm install`
+- Prepare using `pnpm prepare`
+- Prepare using `pnpm build`
+- Try playground using `pnpm dev`
+- Test using `pnpm test`
+
+**Note:** This repository uses bash scripts for development and testing. If you are on Windows, you can use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) or [Git Bash](https://gitforwindows.org/).
 
 ## License
 

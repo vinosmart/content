@@ -11,7 +11,7 @@ export default defineTransformer({
     config.rehypePlugins = await importPlugins(config.rehypePlugins)
     config.remarkPlugins = await importPlugins(config.remarkPlugins)
 
-    const parsed = await parse(content, config)
+    const parsed = await parse(content as string, config)
 
     return <MarkdownParsedContent> {
       ...parsed.meta,
@@ -28,7 +28,7 @@ async function importPlugins (plugins: Record<string, false | MarkdownPlugin> = 
     if (plugin) {
       resolvedPlugins[name] = {
         instance: plugin.instance || await import(/* @vite-ignore */ name).then(m => m.default || m),
-        ...plugin
+        options: plugin
       }
     } else {
       resolvedPlugins[name] = false
