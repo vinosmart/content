@@ -1,29 +1,26 @@
 import { createError, defineEventHandler } from 'h3'
-import { join } from 'pathe'
 import { serverQueryContent } from '../storage'
 import { getContentQuery } from '../../utils/query'
+import { useRuntimeConfig } from '#imports'
 
 export default defineEventHandler(async (event) => {
   const query = getContentQuery(event)
+  const { advanceQuery } = useRuntimeConfig().public.content.experimental
 
   if (query.first) {
-    const content = await serverQueryContent(event, query).findOne()
+    let contentQuery = serverQueryContent(event, query)
 
-    // Try to find `_dir` file before throwing 404
-    const path = content?._path || query.where?.find(w => w._path)?._path as string
-    if (path) {
-      const _dir = await serverQueryContent(event).where({ _path: join(path, '_dir') }).without('_').findOne()
-      if (_dir && !Array.isArray(_dir)) {
-        return {
-          _path: path,
-          ...(content || {}),
-          _dir
-        }
-      }
+    if (!advanceQuery) {
+      contentQuery = contentQuery.withDirConfig()
     }
 
+    const content = await contentQuery.findOne()
+
+    const _result = advanceQuery ? content?.result : content
+    // @ts-ignore
+    const missing = !_result && !content?.dirConfig?.navigation?.redirect && !content?._dir?.navigation?.redirect
     // If no documents matchs and using findOne()
-    if (!content) {
+    if (missing) {
       throw createError({
         statusMessage: 'Document not found!',
         statusCode: 404,
@@ -37,7 +34,9 @@ export default defineEventHandler(async (event) => {
     return content
   }
 
-  const contents = await serverQueryContent(event, query).find()
+  if (query.count) {
+    return serverQueryContent(event, query).count()
+  }
 
-  return contents
+  return serverQueryContent(event, query).find()
 })
